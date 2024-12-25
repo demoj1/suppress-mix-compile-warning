@@ -1,0 +1,24 @@
+#! /usr/bin/env bash
+
+echo -e "\033[38;5;15m\033[48;5;208m Run mix $@ with supress all warnigns \033[0m"
+echo ""
+
+mix "$@" 2>&1 | awk '
+  /.*warning: / { is_warning = 1; skip = 0; }
+  /.*[0-9]+:[0-9]+/ {
+    if (is_warning == 1) {
+      is_warning = 0;
+      skip = 1;
+      next;
+    }
+  }
+  /.*/ {
+    if (is_warning == 1) {
+      next;
+    } else if (skip > 0) {
+      skip = skip - 1;
+    } else {
+      print;
+    }
+  }
+'
